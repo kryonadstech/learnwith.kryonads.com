@@ -23,6 +23,23 @@
   --transition-normal: 0.3s ease;
 }
 
+/* Admin Light Theme (White & Blue) */
+.admin-theme {
+  --bg-primary: #f8fafc;
+  --bg-secondary: #ffffff;
+  --text-primary: #0f172a;
+  --text-secondary: #64748b;
+  --accent-primary: #3b82f6; /* Vibrant Blue */
+  --accent-hover: #2563eb;
+  --accent-light: rgba(59, 130, 246, 0.1);
+  --error: #ef4444;
+  --success: #10b981;
+  
+  --glass-bg: #ffffff;
+  --glass-border: #e2e8f0;
+  --glass-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03);
+}
+
 * {
   box-sizing: border-box;
   margin: 0;

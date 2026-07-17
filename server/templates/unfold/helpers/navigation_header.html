@@ -1,0 +1,54 @@
+{% load unfold i18n static %}
+
+<div class="border-b border-base-200 dark:border-base-800 {% element_classes 'navigation_header' %}" {% if site_dropdown %}x-data="{ openDropdown: false }"{% endif %}>
+
+  {# ── Profile strip: logo image (round) + admin name/email ── #}
+  {% if user.is_authenticated %}
+  <div class="flex items-center gap-3 px-5 py-4">
+
+    {# Kryonads logo in a round circle #}
+    <img src="{% static 'admin/img/kryonads-logo.png' %}"
+         alt="Kryonads"
+         style="
+           width: 44px; height: 44px; border-radius: 50%;
+           object-fit: cover; flex-shrink: 0;
+           background: #fff;
+           box-shadow: 0 2px 10px rgba(99,102,241,0.30);
+           border: 2px solid rgba(99,102,241,0.25);
+         " />
+
+    {# Admin name + email #}
+    <div style="min-width:0; overflow:hidden;">
+      <div style="font-weight:600; font-size:13px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+           class="text-important">
+        {{ request.user.get_full_name|default:request.user.get_username }}
+      </div>
+      {% if request.user.email %}
+      <div style="font-size:11px; white-space:nowrap; overflow:hidden; text-overflow:ellipsis;"
+           class="text-subtle">
+        {{ request.user.email }}
+      </div>
+      {% endif %}
+    </div>
+
+  </div>
+  {% else %}
+  {# Fallback: show brand logo when not authenticated #}
+  <div class="flex gap-3 items-center h-[65px] px-6">
+    {% if site_logo %}
+        {% include "unfold/helpers/site_logo.html" %}
+    {% elif branding %}
+        {% include "unfold/helpers/site_icon.html" %}
+    {% endif %}
+  </div>
+  {% endif %}
+
+  {% include "unfold/helpers/site_dropdown.html" %}
+
+  {# Mobile close button #}
+  <span class="material-symbols-outlined absolute top-4 right-3 cursor-pointer xl:hidden! hover:text-base-700 dark:hover:text-base-200"
+        x-on:click="sidebarToggle()">
+    close
+  </span>
+
+</div>

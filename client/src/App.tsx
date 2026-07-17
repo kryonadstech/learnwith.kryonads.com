@@ -3,7 +3,6 @@ import { AuthProvider, useAuth } from './context/AuthContext';
 import LandingPage from './pages/LandingPage';
 import Login from './pages/Login';
 import AdminLogin from './pages/AdminLogin';
-import AdminDashboard from './pages/AdminDashboard';
 import StudentDashboard from './pages/StudentDashboard';
 import './styles/global.css';
 
@@ -11,7 +10,13 @@ import './styles/global.css';
 const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   const { user, loading } = useAuth();
   if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
-  if (user) return <Navigate to={user.is_staff ? '/admin' : '/dashboard'} replace />;
+  if (user) {
+    if (user.is_staff) {
+      window.location.href = 'http://localhost:8000/admin';
+      return null;
+    }
+    return <Navigate to="/dashboard" replace />;
+  }
   return <>{children}</>;
 };
 
@@ -21,7 +26,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.Re
   if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
   if (!user) return <Navigate to="/" replace />;
   if (requireAdmin && !user.is_staff) return <Navigate to="/dashboard" replace />;
-  if (!requireAdmin && user.is_staff) return <Navigate to="/admin" replace />;
+  if (!requireAdmin && user.is_staff) {
+    window.location.href = 'http://localhost:8000/admin';
+    return null;
+  }
   return <>{children}</>;
 };
 
@@ -37,15 +45,6 @@ function App() {
           <Route path="/login" element={<PublicRoute><Login /></PublicRoute>} />
           <Route path="/admin/login" element={<PublicRoute><AdminLogin /></PublicRoute>} />
 
-          {/* Protected: Admin dashboard */}
-          <Route
-            path="/admin/*"
-            element={
-              <ProtectedRoute requireAdmin={true}>
-                <AdminDashboard />
-              </ProtectedRoute>
-            }
-          />
 
           {/* Protected: Student dashboard */}
           <Route

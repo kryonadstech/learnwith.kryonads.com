@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/6.0/ref/settings/
 
 from pathlib import Path
 import os
+# pyrefly: ignore [missing-import]
 import environ
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -41,7 +42,7 @@ ALLOWED_HOSTS = env.list('ALLOWED_HOSTS', default=['localhost', '127.0.0.1'])
 # Application definition
 
 INSTALLED_APPS = [
-    'jazzmin',  # Must be before django.contrib.admin
+    'unfold',  # Must be before django.contrib.admin
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -59,83 +60,135 @@ INSTALLED_APPS = [
     'lms',
 ]
 
-# ─── Jazzmin (Django Admin UI upgrade) ───────────────────
-JAZZMIN_SETTINGS = {
-    'site_title': 'Krayonads LMS Admin',
-    'site_header': 'Krayonads LMS',
-    'site_brand': 'Krayonads Admin',
-    'site_logo': 'admin/img/kryonads-logo.svg',
-    'site_logo_classes': 'brand-image',
-    'login_logo': 'admin/img/kryonads-logo.svg',
-    'welcome_sign': 'Sign in to manage courses, students & content',
-    'copyright': 'Krayonads',
+# ─── Django Unfold Admin Theme ───────────────────
+from django.templatetags.static import static
+from django.urls import reverse_lazy
 
-    # Top menu links
-    'topmenu_links': [
-        {'name': 'Dashboard', 'url': 'admin:index', 'permissions': ['auth.view_user']},
-        {'name': 'Student Portal', 'url': 'http://localhost:5173/login', 'new_window': True},
+UNFOLD = {
+    'SITE_TITLE': 'Krayonads LMS',
+    'SITE_HEADER': 'Krayonads LMS',
+    'SITE_URL': '/',
+    'SITE_LOGO': lambda request: static('admin/img/kryonads-logo.png'),
+    'SITE_LOGO_ALT': 'Krayonads LMS',
+    'SITE_SYMBOL': 'school',
+    'SHOW_HISTORY': True,
+    'SHOW_VIEW_ON_SITE': True,
+    'DASHBOARD_CALLBACK': 'core.dashboard.dashboard_callback',
+    'COLORS': {
+        'primary': {
+            '50': '#eff6ff',
+            '100': '#dbeafe',
+            '200': '#bfdbfe',
+            '300': '#93c5fd',
+            '400': '#60a5fa',
+            '500': '#3b82f6',
+            '600': '#2563eb',
+            '700': '#1d4ed8',
+            '800': '#1e40af',
+            '900': '#1e3a8a',
+            '950': '#172554',
+        },
+    },
+    'EXTENSIONS': {
+        'modeltranslation': {
+            'flags': {},
+        },
+    },
+    'SIDEBAR': {
+        'show_search': True,
+        'show_all_applications': True,
+        'navigation': [
+            {
+                'title': 'Dashboard',
+                'separator': False,
+                'items': [
+                    {
+                        'title': 'Overview',
+                        'icon': 'dashboard',
+                        'link': reverse_lazy('admin:index'),
+                    },
+                ],
+            },
+            {
+                'title': 'LMS',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'Courses',
+                        'icon': 'menu_book',
+                        'link': reverse_lazy('admin:lms_course_changelist'),
+                    },
+                    {
+                        'title': 'Modules',
+                        'icon': 'layers',
+                        'link': reverse_lazy('admin:lms_module_changelist'),
+                    },
+                    {
+                        'title': 'Lessons',
+                        'icon': 'play_circle',
+                        'link': reverse_lazy('admin:lms_lesson_changelist'),
+                    },
+                    {
+                        'title': 'Media',
+                        'icon': 'perm_media',
+                        'link': reverse_lazy('admin:lms_media_changelist'),
+                    },
+                    {
+                        'title': 'Enrollments',
+                        'icon': 'how_to_reg',
+                        'link': reverse_lazy('admin:lms_enrollment_changelist'),
+                    },
+                    {
+                        'title': 'Live Classes',
+                        'icon': 'videocam',
+                        'link': reverse_lazy('admin:lms_liveclass_changelist'),
+                    },
+                ],
+            },
+            {
+                'title': 'Users',
+                'separator': True,
+                'items': [
+                    {
+                        'title': 'Students',
+                        'icon': 'school',
+                        'link': reverse_lazy('admin:users_user_changelist'),
+                    },
+                    {
+                        'title': 'OTPs',
+                        'icon': 'key',
+                        'link': reverse_lazy('admin:users_otp_changelist'),
+                    },
+                    {
+                        'title': 'Groups',
+                        'icon': 'group',
+                        'link': reverse_lazy('admin:auth_group_changelist'),
+                    },
+                ],
+            },
+        ],
+    },
+    'TABS': [
+        {
+            'models': ['users.user', 'users.otp', 'auth.group'],
+            'items': [
+                {'title': 'Users', 'link': reverse_lazy('admin:users_user_changelist')},
+                {'title': 'OTPs', 'link': reverse_lazy('admin:users_otp_changelist')},
+                {'title': 'Groups', 'link': reverse_lazy('admin:auth_group_changelist')},
+            ],
+        },
+        {
+            'models': ['lms.course', 'lms.module', 'lms.lesson', 'lms.media', 'lms.enrollment', 'lms.liveclass'],
+            'items': [
+                {'title': 'Courses', 'link': reverse_lazy('admin:lms_course_changelist')},
+                {'title': 'Modules', 'link': reverse_lazy('admin:lms_module_changelist')},
+                {'title': 'Lessons', 'link': reverse_lazy('admin:lms_lesson_changelist')},
+                {'title': 'Media', 'link': reverse_lazy('admin:lms_media_changelist')},
+                {'title': 'Enrollments', 'link': reverse_lazy('admin:lms_enrollment_changelist')},
+                {'title': 'Live Classes', 'link': reverse_lazy('admin:lms_liveclass_changelist')},
+            ],
+        },
     ],
-
-    # Side menu ordering
-    'order_with_respect_to': ['users', 'lms'],
-
-    # Icons (Font Awesome 5 free)
-    'icons': {
-        'auth': 'fas fa-users-cog',
-        'users.user': 'fas fa-user',
-        'users.otp': 'fas fa-key',
-        'lms.course': 'fas fa-book-open',
-        'lms.module': 'fas fa-layer-group',
-        'lms.lesson': 'fas fa-video',
-        'lms.media': 'fas fa-photo-video',
-        'lms.enrollment': 'fas fa-user-check',
-        'lms.liveclass': 'fas fa-broadcast-tower',
-    },
-    'default_icon_parents': 'fas fa-folder',
-    'default_icon_children': 'fas fa-circle',
-
-    # UI tweaks
-    'show_sidebar': True,
-    'navigation_expanded': True,
-    'hide_apps': [],
-    'hide_models': [],
-    'related_modal_active': True,
-    'custom_css': 'admin/css/kryonads_admin.css',
-    'custom_js': None,
-    'use_google_fonts_cdn': False,
-    'show_ui_builder': False,
-    'show_theme_chooser': False,
-}
-
-JAZZMIN_UI_TWEAKS = {
-    'navbar_small_text': False,
-    'footer_small_text': False,
-    'body_small_text': False,
-    'brand_small_text': False,
-    'accent': 'accent-primary',
-    'navbar': 'navbar-dark',
-    'no_navbar_border': True,
-    'navbar_fixed': True,
-    'layout_boxed': False,
-    'footer_fixed': False,
-    'sidebar_fixed': True,
-    'sidebar': 'sidebar-dark-primary',
-    'sidebar_nav_small_text': False,
-    'sidebar_disable_expand': False,
-    'sidebar_nav_child_indent': True,
-    'sidebar_nav_compact_style': False,
-    'sidebar_nav_legacy_style': False,
-    'sidebar_nav_flat_style': False,
-    'theme': 'slate',
-    'default_theme_mode': 'dark',
-    'button_classes': {
-        'primary': 'btn-primary',
-        'secondary': 'btn-secondary',
-        'info': 'btn-info',
-        'warning': 'btn-warning',
-        'danger': 'btn-danger',
-        'success': 'btn-success',
-    },
 }
 
 MIDDLEWARE = [
@@ -154,7 +207,7 @@ ROOT_URLCONF = 'core.urls'
 TEMPLATES = [
     {
         'BACKEND': 'django.template.backends.django.DjangoTemplates',
-        'DIRS': [],
+        'DIRS': [BASE_DIR / 'templates'],
         'APP_DIRS': True,
         'OPTIONS': {
             'context_processors': [
@@ -201,6 +254,7 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
@@ -245,7 +299,7 @@ USE_TZ = True
 STATIC_URL = 'static/'
 STATIC_ROOT = BASE_DIR / 'staticfiles'
 STATICFILES_DIRS = [
-    BASE_DIR / 'core' / 'static',
+    BASE_DIR / 'static',
 ]
 
 MEDIA_URL = '/media/'

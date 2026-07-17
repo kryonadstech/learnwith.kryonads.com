@@ -20,6 +20,9 @@ router.register(r'admin/students', AdminStudentViewSet, basename='admin-student'
 router.register(r'student/courses', StudentCourseViewSet, basename='student-course')
 router.register(r'student/live-classes', StudentLiveClassViewSet, basename='student-live-class')
 
+from .views import admin_dashboard_stats
+
 urlpatterns = [
     path('', include(router.urls)),
+    path('admin/dashboard/stats/', admin_dashboard_stats, name='admin-dashboard-stats'),
 ]
