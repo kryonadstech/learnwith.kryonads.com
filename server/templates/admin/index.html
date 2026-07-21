@@ -100,7 +100,7 @@
   <!-- ══ ROW 1 — STAT CARDS ══ -->
   <div class="stat-grid">
 
-    <a class="scard-link" href="{% url 'admin:users_user_changelist' %}">
+    <a class="scard-link" href="{% url 'admin:users_student_changelist' %}">
       <div class="scard" style="--ca:#3b82f6;--cai:#eff6ff;">
         <div class="icon-wrap"><i class="fa-solid fa-user-graduate"></i></div>
         <div class="slabel">Students</div>
@@ -116,7 +116,7 @@
       </div>
     </a>
 
-    <a class="scard-link" href="{% url 'admin:users_user_changelist' %}">
+    <a class="scard-link" href="{% url 'admin:users_staff_changelist' %}">
       <div class="scard" style="--ca:#06b6d4;--cai:#ecfeff;">
         <div class="icon-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
         <div class="slabel">Instructors</div>
@@ -203,7 +203,7 @@
       <div class="wcbody">
         <div class="sec-hdr">
           <h3><i class="fa-solid fa-star"></i> Top Instructors</h3>
-          <a href="{% url 'admin:users_user_changelist' %}">View all <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
+          <a href="{% url 'admin:users_staff_changelist' %}">View all <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
         </div>
       </div>
       <table class="mtbl">
@@ -261,7 +261,7 @@
       <div class="wcbody">
         <div class="sec-hdr">
           <h3><i class="fa-solid fa-user-plus"></i> Latest Students</h3>
-          <a href="{% url 'admin:users_user_changelist' %}">View all <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
+          <a href="{% url 'admin:users_student_changelist' %}">View all <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
         </div>
       </div>
       <table class="mtbl">

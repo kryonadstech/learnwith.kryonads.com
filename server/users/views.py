@@ -8,6 +8,23 @@ from datetime import timedelta
 import random
 from .models import User, OTP
 from django.conf import settings
+from rest_framework.parsers import MultiPartParser, FormParser
+
+def get_user_data(user, request=None):
+    photo_url = None
+    if user.profile_photo:
+        photo_url = user.profile_photo.url
+        if request:
+            photo_url = request.build_absolute_uri(photo_url)
+    return {
+        'email': user.email,
+        'full_name': user.full_name,
+        'phone_number': user.phone_number,
+        'address': user.address,
+        'profile_photo': photo_url,
+        'is_staff': user.is_staff,
+        'is_student': user.is_student
+    }
 
 def enforce_single_device(user):
     # DRF Token is a OneToOneField. Deleting it and recreating it invalidates all previous sessions.
@@ -31,10 +48,7 @@ class AdminLoginView(views.APIView):
             token_key = enforce_single_device(user)
             return Response({
                 'token': token_key,
-                'user': {
-                    'email': user.email,
-                    'is_staff': user.is_staff
-                }
+                'user': get_user_data(user, request)
             })
         return Response({'error': 'Invalid credentials'}, status=status.HTTP_401_UNAUTHORIZED)
 
@@ -111,19 +125,27 @@ class VerifyOTPView(views.APIView):
 
         return Response({
             'token': token_key,
-            'user': {
-                'email': user.email,
-                'is_staff': user.is_staff
-            }
+            'user': get_user_data(user, request)
         })
 
 class MeView(views.APIView):
     def get(self, request):
-        return Response({
-            'email': request.user.email,
-            'is_staff': request.user.is_staff,
-            'is_student': request.user.is_student
-        })
+        return Response(get_user_data(request.user, request))
+
+class UpdateProfileView(views.APIView):
+    parser_classes = (MultiPartParser, FormParser)
+
+    def put(self, request):
+        user = request.user
+        user.full_name = request.data.get('full_name', user.full_name)
+        user.phone_number = request.data.get('phone_number', user.phone_number)
+        user.address = request.data.get('address', user.address)
+        
+        if 'profile_photo' in request.FILES:
+            user.profile_photo = request.FILES['profile_photo']
+            
+        user.save()
+        return Response(get_user_data(user, request))
 
 class LogoutView(views.APIView):
     def post(self, request):

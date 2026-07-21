@@ -106,6 +106,7 @@ UNFOLD = {
                         'title': 'Overview',
                         'icon': 'dashboard',
                         'link': reverse_lazy('admin:index'),
+                        'permission': lambda request: request.user.is_staff,
                     },
                 ],
             },
@@ -117,31 +118,37 @@ UNFOLD = {
                         'title': 'Courses',
                         'icon': 'menu_book',
                         'link': reverse_lazy('admin:lms_course_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_course'),
                     },
                     {
                         'title': 'Modules',
                         'icon': 'layers',
                         'link': reverse_lazy('admin:lms_module_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_module'),
                     },
                     {
                         'title': 'Lessons',
                         'icon': 'play_circle',
                         'link': reverse_lazy('admin:lms_lesson_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_lesson'),
                     },
                     {
                         'title': 'Media',
                         'icon': 'perm_media',
                         'link': reverse_lazy('admin:lms_media_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_media'),
                     },
                     {
                         'title': 'Enrollments',
                         'icon': 'how_to_reg',
                         'link': reverse_lazy('admin:lms_enrollment_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_enrollment'),
                     },
                     {
                         'title': 'Live Classes',
                         'icon': 'videocam',
                         'link': reverse_lazy('admin:lms_liveclass_changelist'),
+                        'permission': lambda request: request.user.has_perm('lms.view_liveclass'),
                     },
                 ],
             },
@@ -152,17 +159,26 @@ UNFOLD = {
                     {
                         'title': 'Students',
                         'icon': 'school',
-                        'link': reverse_lazy('admin:users_user_changelist'),
+                        'link': reverse_lazy('admin:users_student_changelist'),
+                        'permission': lambda request: request.user.has_perm('users.view_student'),
+                    },
+                    {
+                        'title': 'Staff',
+                        'icon': 'shield_person',
+                        'link': reverse_lazy('admin:users_staff_changelist'),
+                        'permission': lambda request: request.user.has_perm('users.view_staff'),
                     },
                     {
                         'title': 'OTPs',
                         'icon': 'key',
                         'link': reverse_lazy('admin:users_otp_changelist'),
+                        'permission': lambda request: request.user.has_perm('users.view_otp'),
                     },
                     {
                         'title': 'Groups',
                         'icon': 'group',
                         'link': reverse_lazy('admin:auth_group_changelist'),
+                        'permission': lambda request: request.user.has_perm('auth.view_group'),
                     },
                 ],
             },
@@ -170,9 +186,10 @@ UNFOLD = {
     },
     'TABS': [
         {
-            'models': ['users.user', 'users.otp', 'auth.group'],
+            'models': ['users.student', 'users.staff', 'users.otp', 'auth.group'],
             'items': [
-                {'title': 'Users', 'link': reverse_lazy('admin:users_user_changelist')},
+                {'title': 'Students', 'link': reverse_lazy('admin:users_student_changelist')},
+                {'title': 'Staff', 'link': reverse_lazy('admin:users_staff_changelist')},
                 {'title': 'OTPs', 'link': reverse_lazy('admin:users_otp_changelist')},
                 {'title': 'Groups', 'link': reverse_lazy('admin:auth_group_changelist')},
             ],
@@ -238,9 +255,21 @@ DATABASES = {
 
 AUTH_USER_MODEL = 'users.User'
 
-# CORS
-CORS_ALLOW_ALL_ORIGINS = env('CORS_ALLOW_ALL_ORIGINS')
+# CORS and CSRF
+CORS_ALLOW_ALL_ORIGINS = env.bool('CORS_ALLOW_ALL_ORIGINS', default=True)
 CORS_ALLOW_CREDENTIALS = True
+CSRF_TRUSTED_ORIGINS = [
+    'http://localhost:8000',
+    'http://127.0.0.1:8000',
+    'http://localhost:5173',
+    'http://127.0.0.1:5173',
+]
+
+# Allow CSRF cookie to be read by JavaScript (needed for admin multipart forms)
+CSRF_COOKIE_HTTPONLY = False
+CSRF_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_SAMESITE = 'Lax'
+SESSION_COOKIE_HTTPONLY = True
 
 # Email (Gmail SMTP)
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
@@ -254,7 +283,6 @@ EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework.authentication.TokenAuthentication',
-        'rest_framework.authentication.SessionAuthentication',
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
