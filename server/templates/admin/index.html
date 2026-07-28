@@ -120,7 +120,7 @@
       <div class="scard" style="--ca:#06b6d4;--cai:#ecfeff;">
         <div class="icon-wrap"><i class="fa-solid fa-chalkboard-user"></i></div>
         <div class="slabel">Instructors</div>
-        <div class="sval">—</div>
+        <div class="sval">{{ dashboard.total_instructors }}</div>
       </div>
     </a>
 
@@ -128,7 +128,7 @@
       <div class="scard" style="--ca:#10b981;--cai:#ecfdf5;">
         <div class="icon-wrap"><i class="fa-solid fa-indian-rupee-sign"></i></div>
         <div class="slabel">Revenue</div>
-        <div class="sval">₹0</div>
+        <div class="sval">₹{{ dashboard.total_revenue|floatformat:2 }}</div>
       </div>
     </a>
 
@@ -147,7 +147,7 @@
     <div class="wcbody">
       <div class="sec-hdr">
         <h3><i class="fa-solid fa-chart-line"></i> Revenue Trend</h3>
-        <span class="bdg bdg-gray">Mock data — wire payment gateway to see real revenue</span>
+        <span class="bdg bdg-gray">Live revenue from recorded payments</span>
       </div>
       <canvas id="revenueChart" height="80"></canvas>
     </div>
@@ -158,7 +158,7 @@
     <div class="wcard">
       <div class="wcbody">
         <div class="sec-hdr">
-          <h3><i class="fa-solid fa-chart-bar"></i> Lessons per Course</h3>
+          <h3><i class="fa-solid fa-chart-bar"></i> Top Courses</h3>
         </div>
         <canvas id="enrollChart" height="180"></canvas>
       </div>
@@ -178,7 +178,7 @@
     <div class="wcard">
       <div class="wcbody">
         <div class="sec-hdr">
-          <h3><i class="fa-solid fa-trophy"></i> Top Courses</h3>
+          <h3><i class="fa-solid fa-book-open"></i> Lessons per Course</h3>
           <a href="{% url 'admin:lms_course_changelist' %}">View all <i class="fa-solid fa-arrow-right" style="font-size:10px;"></i></a>
         </div>
       </div>
@@ -209,7 +209,14 @@
       <table class="mtbl">
         <thead><tr><th>Instructor</th><th>Role</th></tr></thead>
         <tbody>
-          <tr><td colspan="2" class="empty-row"><i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>Instructors module coming soon</td></tr>
+          {% for instructor in dashboard.top_instructors %}
+          <tr>
+            <td>{{ instructor.name }}</td>
+            <td>{{ instructor.role }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="2" class="empty-row"><i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>No instructors found.</td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -247,9 +254,19 @@
         </div>
       </div>
       <table class="mtbl">
-        <thead><tr><th>Student</th><th>Amount</th><th>Status</th></tr></thead>
+        <thead><tr><th>Student</th><th>Course</th><th>Amount</th><th>Method</th><th>Date</th></tr></thead>
         <tbody>
-          <tr><td colspan="3" class="empty-row"><i class="fa-solid fa-plug-circle-bolt" style="margin-right:6px;"></i>Integrate payment gateway to see data</td></tr>
+          {% for p in dashboard.recent_payments %}
+          <tr>
+            <td>{{ p.student }}</td>
+            <td>{{ p.course }}</td>
+            <td>₹{{ p.amount|floatformat:2 }}</td>
+            <td>{{ p.method }}</td>
+            <td style="color:#9ca3af; font-size:12px;">{{ p.date }}</td>
+          </tr>
+          {% empty %}
+          <tr><td colspan="5" class="empty-row"><i class="fa-solid fa-circle-info" style="margin-right:6px;"></i>No payments have been recorded yet.</td></tr>
+          {% endfor %}
         </tbody>
       </table>
     </div>
@@ -314,19 +331,31 @@
     </div>
   </div>
 
-  <!-- ══ ROW 7 — PENDING APPROVALS + SUPPORT TICKETS ══ -->
+  <!-- ══ ROW 7 — INQUIRIES + SUPPORT TICKETS ══ -->
   <div class="grid-2">
     <div class="wcard">
       <div class="wcbody">
         <div class="sec-hdr">
-          <h3><i class="fa-solid fa-hourglass-half"></i> Pending Approvals</h3>
-          <span class="bdg bdg-y">0 pending</span>
+          <h3><i class="fa-solid fa-question-circle"></i> Inquiries</h3>
+          <span class="bdg bdg-y">{{ dashboard.unresolved_inquiries|length }} new</span>
         </div>
       </div>
-      <div class="act-item" style="border:none;">
-        <div class="act-ico" style="background:#fef3c7;"><i class="fa-solid fa-check-double" style="color:#d97706;"></i></div>
-        <div><div class="act-text" style="color:#9ca3af;">No pending approvals. You are all caught up!</div></div>
-      </div>
+      {% if dashboard.unresolved_inquiries %}
+        {% for inquiry in dashboard.unresolved_inquiries %}
+          <div class="act-item">
+            <div class="act-ico" style="background:#fef3c7;"><i class="fa-solid fa-envelope" style="color:#d97706;"></i></div>
+            <div>
+              <div class="act-text"><strong>{{ inquiry.name }}</strong> — {{ inquiry.course_interest }}</div>
+              <div class="act-time">{{ inquiry.created_at }} • {{ inquiry.email }}</div>
+            </div>
+          </div>
+        {% endfor %}
+      {% else %}
+        <div class="act-item" style="border:none;">
+          <div class="act-ico" style="background:#fef3c7;"><i class="fa-solid fa-envelope" style="color:#d97706;"></i></div>
+          <div><div class="act-text" style="color:#9ca3af;">No unresolved inquiries. Everything is caught up!</div></div>
+        </div>
+      {% endif %}
     </div>
 
     <div class="wcard">
@@ -415,19 +444,21 @@
 <script>
 const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#ec4899','#f97316'];
 
-// ── Revenue Line (mock until payment gateway) ──
+// ── Revenue Line ──
 (function(){
   const ctx = document.getElementById('revenueChart').getContext('2d');
   const grad = ctx.createLinearGradient(0,0,0,220);
   grad.addColorStop(0,'rgba(59,130,246,0.20)');
   grad.addColorStop(1,'rgba(59,130,246,0.00)');
+  const labels = {{ dashboard.revenue_labels_json|safe }};
+  const data = {{ dashboard.revenue_monthly_json|safe }};
   new Chart(ctx,{
     type:'line',
     data:{
-      labels:['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'],
+      labels: labels,
       datasets:[{
         label:'Revenue (₹)',
-        data:[0,0,0,0,0,0,0,0,0,0,0,0],
+        data: data,
         borderColor:'#3b82f6', borderWidth:2.5,
         pointRadius:4, pointBackgroundColor:'#3b82f6', pointHoverRadius:6,
         tension:0.4, fill:true, backgroundColor:grad
@@ -444,7 +475,7 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#e
   });
 })();
 
-// ── Bar: Lessons per Course (real data from Django context) ──
+// ── Bar: Top Courses (real data from Django context) ──
 (function(){
   const labels = {{ dashboard.graph_labels_json|safe }};
   const data   = {{ dashboard.graph_data_json|safe }};
@@ -454,7 +485,7 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#e
     data:{
       labels: labels.length ? labels : ['No data yet'],
       datasets:[{
-        label:'Lessons',
+        label:'Enrollments',
         data: data.length ? data : [0],
         backgroundColor: PALETTE.map(c=>c+'cc'),
         borderRadius:6, borderSkipped:false

@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import api from '../../api/axios';
 import SecurePlayer from './SecurePlayer';
-import { ChevronLeft, Play, FileText, Headphones, Lock } from 'lucide-react';
+import { ChevronLeft, Play, FileText, Headphones, Lock, Layers } from 'lucide-react';
 
 interface Media {
   id: string;
@@ -37,7 +37,7 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [activeMedia, setActiveMedia] = useState<Media | null>(null);
+  const [activeMediaId, setActiveMediaId] = useState<string | 'all' | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   useEffect(() => {
@@ -53,7 +53,7 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
           const firstLesson = response.data.modules[0].lessons[0];
           setActiveLesson(firstLesson);
           if (firstLesson.media?.[0]) {
-            setActiveMedia(firstLesson.media[0]);
+            setActiveMediaId('all');
           }
         }
       } catch (error) {
@@ -95,24 +95,50 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
       </button>
 
       <div className="sd-viewer-layout">
-        {/* Main Content Area */}
-        <div className="sd-main-content">
-          <h2 className="sd-hero-title" style={{ fontSize: '1.75rem', color: 'var(--sd-text)' }}>
-            {course.title}
-          </h2>
+        <div className="sd-main-content bg-[var(--sd-glass)] rounded-2xl shadow-sm border border-[var(--sd-glass-border)] p-6 md:p-10 flex flex-col gap-8">
+          <div className="border-b border-[var(--sd-glass-border)] pb-8">
+            <h2 className="text-3xl font-bold tracking-tight text-[var(--sd-text)]">
+              {course.title}
+            </h2>
+            {activeLesson && (
+              <p className="text-secondary mt-3 text-lg font-medium">{activeLesson.title}</p>
+            )}
+          </div>
 
-          {activeMedia ? (
-            <div className="mb-6">
-              <SecurePlayer mediaUrl={activeMedia.file} mediaType={activeMedia.media_type} />
-              <h3 className="text-xl font-semibold mt-4">{activeLesson?.title}</h3>
-              {activeMedia.title && <p className="text-secondary mt-1">{activeMedia.title}</p>}
-            </div>
-          ) : (
-            <div className="h-64 flex flex-col items-center justify-center text-secondary mb-6" style={{ background: 'var(--sd-accent-tint)', borderRadius: '1rem' }}>
-              <Lock size={48} className="mb-4 opacity-50" />
-              <p>Select a lesson from the syllabus to begin learning.</p>
-            </div>
-          )}
+          {(() => {
+            const activeMediaList = activeMediaId === 'all' 
+              ? activeLesson?.media || []
+              : activeLesson?.media.filter(m => m.id === activeMediaId) || [];
+
+            if (activeMediaList.length > 0) {
+              return (
+                <div className="flex flex-col gap-24 mt-6">
+                  {activeMediaList.map(media => (
+                    <div key={media.id} className="flex flex-col gap-6">
+                      <div className="flex items-center gap-4">
+                        <div className="p-3 bg-[var(--sd-accent-tint)] text-[var(--sd-accent)] rounded-xl shadow-sm">
+                          {getMediaIcon(media.media_type)}
+                        </div>
+                        <h3 className="text-2xl font-semibold text-[var(--sd-text)]">
+                          {media.title || (media.media_type.charAt(0).toUpperCase() + media.media_type.slice(1))}
+                        </h3>
+                      </div>
+                      <div className="w-full">
+                        <SecurePlayer mediaUrl={media.file} mediaType={media.media_type} />
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              );
+            }
+
+            return (
+              <div className="h-64 flex flex-col items-center justify-center text-secondary mt-4 bg-[var(--sd-accent-tint)] rounded-2xl">
+                <Lock size={48} className="mb-4 opacity-50" />
+                <p className="text-lg font-medium">Select a lesson from the syllabus to begin learning.</p>
+              </div>
+            );
+          })()}
         </div>
 
         {/* Sidebar Syllabus */}
@@ -143,7 +169,7 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
                         <button
                           onClick={() => {
                             setActiveLesson(lesson);
-                            if (lesson.media.length > 0) setActiveMedia(lesson.media[0]);
+                            if (lesson.media.length > 0) setActiveMediaId('all');
                             if (window.innerWidth <= 1024) setIsSidebarOpen(false);
                           }}
                           className={`sd-lesson-btn ${activeLesson?.id === lesson.id ? 'active' : ''}`}
@@ -155,11 +181,18 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
                         {/* Media Links if lesson is active */}
                         {activeLesson?.id === lesson.id && lesson.media.length > 1 && (
                           <div className="sd-media-links flex flex-col gap-1">
+                            <button
+                              onClick={() => setActiveMediaId('all')}
+                              className={`sd-media-btn ${activeMediaId === 'all' ? 'active' : ''}`}
+                            >
+                              <Layers size={14} />
+                              <span>View All</span>
+                            </button>
                             {lesson.media.map((media) => (
                               <button
                                 key={media.id}
-                                onClick={() => setActiveMedia(media)}
-                                className={`sd-media-btn ${activeMedia?.id === media.id ? 'active' : ''}`}
+                                onClick={() => setActiveMediaId(media.id)}
+                                className={`sd-media-btn ${activeMediaId === media.id ? 'active' : ''}`}
                               >
                                 {getMediaIcon(media.media_type)}
                                 <span>{media.title || media.media_type}</span>

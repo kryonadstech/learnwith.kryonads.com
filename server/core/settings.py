@@ -49,7 +49,7 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-    
+
     # Third party apps
     'rest_framework',
     'rest_framework.authtoken',
@@ -59,6 +59,15 @@ INSTALLED_APPS = [
     'users',
     'lms',
 ]
+
+# django-debug-toolbar — only loaded in local development
+if DEBUG:
+    INSTALLED_APPS += ['debug_toolbar']
+
+    INTERNAL_IPS = [
+        '127.0.0.1',
+        'localhost',
+    ]
 
 # ─── Django Unfold Admin Theme ───────────────────
 from django.templatetags.static import static
@@ -169,6 +178,12 @@ UNFOLD = {
                         'permission': lambda request: request.user.has_perm('users.view_staff'),
                     },
                     {
+                        'title': 'Inquiries',
+                        'icon': 'question_answer',
+                        'link': reverse_lazy('admin:users_inquiry_changelist'),
+                        'permission': lambda request: request.user.has_perm('users.view_inquiry'),
+                    },
+                    {
                         'title': 'OTPs',
                         'icon': 'key',
                         'link': reverse_lazy('admin:users_otp_changelist'),
@@ -186,10 +201,11 @@ UNFOLD = {
     },
     'TABS': [
         {
-            'models': ['users.student', 'users.staff', 'users.otp', 'auth.group'],
+            'models': ['users.student', 'users.staff', 'users.inquiry', 'users.otp', 'auth.group'],
             'items': [
                 {'title': 'Students', 'link': reverse_lazy('admin:users_student_changelist')},
                 {'title': 'Staff', 'link': reverse_lazy('admin:users_staff_changelist')},
+                {'title': 'Inquiries', 'link': reverse_lazy('admin:users_inquiry_changelist')},
                 {'title': 'OTPs', 'link': reverse_lazy('admin:users_otp_changelist')},
                 {'title': 'Groups', 'link': reverse_lazy('admin:auth_group_changelist')},
             ],
@@ -218,6 +234,10 @@ MIDDLEWARE = [
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
+
+# Insert debug toolbar middleware only in development
+if DEBUG:
+    MIDDLEWARE.insert(2, 'debug_toolbar.middleware.DebugToolbarMiddleware')
 
 ROOT_URLCONF = 'core.urls'
 
@@ -253,6 +273,13 @@ DATABASES = {
     }
 }
 
+CACHES = {
+    'default': {
+        'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
+        'LOCATION': 'kryonads-lms-cache',
+    }
+}
+
 AUTH_USER_MODEL = 'users.User'
 
 # CORS and CSRF
@@ -275,7 +302,7 @@ SESSION_COOKIE_HTTPONLY = True
 EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
 EMAIL_HOST = env('EMAIL_HOST', default='smtp.gmail.com')
 EMAIL_PORT = env.int('EMAIL_PORT', default=587)
-EMAIL_USE_TLS = env('EMAIL_USE_TLS')
+EMAIL_USE_TLS = env.bool('EMAIL_USE_TLS', default=True)
 EMAIL_HOST_USER = env('EMAIL_HOST_USER')
 EMAIL_HOST_PASSWORD = env('EMAIL_HOST_PASSWORD')
 
@@ -286,7 +313,13 @@ REST_FRAMEWORK = {
     ),
     'DEFAULT_PERMISSION_CLASSES': (
         'rest_framework.permissions.IsAuthenticated',
-    )
+    ),
+    # Disable the Browsable API in production (only enables it in DEBUG mode)
+    'DEFAULT_RENDERER_CLASSES': (
+        ['rest_framework.renderers.JSONRenderer', 'rest_framework.renderers.BrowsableAPIRenderer']
+        if DEBUG else
+        ['rest_framework.renderers.JSONRenderer']
+    ),
 }
 
 
@@ -332,3 +365,66 @@ STATICFILES_DIRS = [
 
 MEDIA_URL = '/media/'
 MEDIA_ROOT = BASE_DIR / 'media'
+
+# ── Default primary key type ──────────────────────────────────────────────────
+# Explicitly set to avoid Django's system check warning.
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ── Production security headers ───────────────────────────────────────────────
+# These are no-ops in local dev (DEBUG=True) and activate in production.
+SECURE_BROWSER_XSS_FILTER = True
+SECURE_CONTENT_TYPE_NOSNIFF = True
+X_FRAME_OPTIONS = 'DENY'
+
+if not DEBUG:
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000          # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+import logging
+
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname}: {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': env('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+        'lms': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+        'users': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'WARNING',
+            'propagate': False,
+        },
+    },
+}

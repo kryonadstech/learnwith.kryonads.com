@@ -1,9 +1,11 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
-import { LogOut, User, BookOpen, Settings, Sparkles, ChevronDown } from 'lucide-react';
+import { LogOut, User, BookOpen, Settings, Sparkles, ChevronDown, FileText, MessageSquare } from 'lucide-react';
 import MyCourses from '../components/student/MyCourses';
 import CourseViewer from '../components/student/CourseViewer';
 import ProfileView from '../components/student/ProfileView';
+import MyPayments from '../components/student/MyPayments';
+import StudentInquiries from '../components/student/StudentInquiries';
 import logo from '../assets/logo.png';
 import '../styles/student-dashboard.css';
 
@@ -18,7 +20,7 @@ function getInitials(name?: string) {
 
 export default function StudentDashboard() {
   const { user, logout } = useAuth();
-  const [activeTab, setActiveTab] = useState<'courses' | 'profile'>('courses');
+  const [activeTab, setActiveTab] = useState<'courses' | 'payments' | 'profile' | 'inquiries'>('courses');
   const [selectedCourseId, setSelectedCourseId] = useState<string | null>(null);
 
   const handleLogoClick = () => {
@@ -87,6 +89,18 @@ export default function StudentDashboard() {
               <BookOpen size={17} /> My Courses
             </button>
             <button
+              className={`sd-tab ${activeTab === 'payments' ? 'active' : ''}`}
+              onClick={() => setActiveTab('payments')}
+            >
+              <FileText size={17} /> Payments
+            </button>
+            <button
+              className={`sd-tab ${activeTab === 'inquiries' ? 'active' : ''}`}
+              onClick={() => setActiveTab('inquiries')}
+            >
+              <MessageSquare size={17} /> Inquiries
+            </button>
+            <button
               className={`sd-tab ${activeTab === 'profile' ? 'active' : ''}`}
               onClick={() => setActiveTab('profile')}
             >
@@ -126,6 +140,17 @@ export default function StudentDashboard() {
               </div>
 
               <MyCourses onSelectCourse={setSelectedCourseId} />
+            </div>
+          ) : activeTab === 'payments' ? (
+            <div className="animate-fade-in">
+              <div className="sd-section-header">
+                <h3>My Payments</h3>
+              </div>
+              <MyPayments />
+            </div>
+          ) : activeTab === 'inquiries' ? (
+            <div className="animate-fade-in">
+              <StudentInquiries />
             </div>
           ) : (
             <ProfileView />

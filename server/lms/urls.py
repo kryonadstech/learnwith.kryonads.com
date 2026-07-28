@@ -3,7 +3,7 @@ from rest_framework.routers import DefaultRouter
 from .views import (
     AdminCourseViewSet, AdminModuleViewSet, AdminLessonViewSet, AdminMediaViewSet,
     AdminEnrollmentViewSet, AdminLiveClassViewSet, AdminStudentViewSet,
-    StudentCourseViewSet, StudentLiveClassViewSet
+    StudentCourseViewSet, StudentLiveClassViewSet, StudentEnrollmentViewSet
 )
 
 router = DefaultRouter()
@@ -19,6 +19,7 @@ router.register(r'admin/students', AdminStudentViewSet, basename='admin-student'
 # Student routes
 router.register(r'student/courses', StudentCourseViewSet, basename='student-course')
 router.register(r'student/live-classes', StudentLiveClassViewSet, basename='student-live-class')
+router.register(r'student/enrollments', StudentEnrollmentViewSet, basename='student-enrollment')
 
 from .views import admin_dashboard_stats
 

@@ -3,7 +3,8 @@ from django.contrib.auth.admin import UserAdmin as BaseUserAdmin, GroupAdmin as 
 from django.contrib.auth.models import Group
 from unfold.admin import ModelAdmin
 from unfold.forms import AdminPasswordChangeForm, UserChangeForm, UserCreationForm
-from .models import User, OTP, Student, Staff
+from .models import User, OTP, Student, Staff, Inquiry
+from utils.exports import export_to_excel, export_to_pdf
 
 
 # We keep the base admin class but do not register User directly
@@ -49,10 +50,71 @@ class OTPAdmin(ModelAdmin):
     readonly_fields = ['created_at']
     compressed_fields = True
 
+from unfold.admin import TabularInline
+from lms.models import Enrollment
+
+class EnrollmentInline(TabularInline):
+    model = Enrollment
+    extra = 0  # No blank rows — prevents accidental duplicate enrollments
+    fields = ('course', 'enrolled_at', 'last_watched_lesson')
+    readonly_fields = ('enrolled_at', 'last_watched_lesson')
+    autocomplete_fields = ['course']
+    show_change_link = True
+
+    def get_queryset(self, request):
+        return super().get_queryset(request).select_related('user', 'course')
+
+# ── Student export actions ───────────────────────────────────────────────────
+
+STUDENT_FIELDS = [
+    ('Full Name',    lambda obj: obj.full_name or ''),
+    ('Email',        lambda obj: obj.email),
+    ('Phone',        lambda obj: obj.phone_number or ''),
+    ('Address',      lambda obj: obj.address or ''),
+    ('Active',       lambda obj: 'Yes' if obj.is_active else 'No'),
+    ('Date Joined',  lambda obj: obj.created_at),
+]
+
+
+def export_students_excel(modeladmin, request, queryset):
+    return export_to_excel(queryset, STUDENT_FIELDS, filename='students')
+export_students_excel.short_description = '⬇ Export selected Students as Excel (.xlsx)'
+
+
+def export_students_pdf(modeladmin, request, queryset):
+    return export_to_pdf(queryset, STUDENT_FIELDS, filename='students', title='Students Report')
+export_students_pdf.short_description = '⬇ Export selected Students as PDF'
+
+
 @admin.register(Student)
 class StudentAdmin(UserAdmin):
     def get_queryset(self, request):
         return super().get_queryset(request).filter(is_student=True)
+
+    inlines = [EnrollmentInline]
+    actions = [export_students_excel, export_students_pdf]
+
+# ── Staff export actions ─────────────────────────────────────────────────────
+
+STAFF_FIELDS = [
+    ('Full Name',     lambda obj: obj.full_name or ''),
+    ('Email',         lambda obj: obj.email),
+    ('Phone',         lambda obj: obj.phone_number or ''),
+    ('Superuser',     lambda obj: 'Yes' if obj.is_superuser else 'No'),
+    ('Active',        lambda obj: 'Yes' if obj.is_active else 'No'),
+    ('Date Joined',   lambda obj: obj.created_at),
+]
+
+
+def export_staff_excel(modeladmin, request, queryset):
+    return export_to_excel(queryset, STAFF_FIELDS, filename='staff')
+export_staff_excel.short_description = '⬇ Export selected Staff as Excel (.xlsx)'
+
+
+def export_staff_pdf(modeladmin, request, queryset):
+    return export_to_pdf(queryset, STAFF_FIELDS, filename='staff', title='Staff Report')
+export_staff_pdf.short_description = '⬇ Export selected Staff as PDF'
+
 
 @admin.register(Staff)
 class StaffAdmin(UserAdmin):
@@ -67,9 +129,19 @@ class StaffAdmin(UserAdmin):
         ('Timestamps', {'fields': ('created_at', 'updated_at')}),
     )
     filter_horizontal = ['groups', 'user_permissions']
+    actions = [export_staff_excel, export_staff_pdf]
 
 admin.site.unregister(Group)
 
 @admin.register(Group)
 class GroupAdmin(ModelAdmin, BaseGroupAdmin):
     pass
+
+@admin.register(Inquiry)
+class InquiryAdmin(ModelAdmin):
+    list_display = ['name', 'email', 'course_interest', 'created_at', 'is_resolved']
+    list_filter = ['is_resolved', 'course_interest']
+    search_fields = ['name', 'email', 'phone_number', 'course_interest']
+    ordering = ['-created_at']
+    readonly_fields = ['created_at']
+    compressed_fields = True

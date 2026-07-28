@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { useAuth } from '../context/AuthContext';
 import api from '../api/axios';
+import { isAxiosError } from 'axios';
 
 export default function AdminLogin() {
   const [email, setEmail] = useState('');
@@ -17,8 +18,12 @@ export default function AdminLogin() {
       const response = await api.post('/users/auth/admin/login/', { email, password });
       login(response.data.token, response.data.user);
       // ProtectedRoute will redirect to admin dashboard
-    } catch (err: any) {
-      setError(err.response?.data?.error || 'Invalid admin credentials.');
+    } catch (err) {
+      if (isAxiosError(err)) {
+        setError(err.response?.data?.error || 'Invalid admin credentials.');
+      } else {
+        setError('An unexpected error occurred.');
+      }
     } finally {
       setLoading(false);
     }
