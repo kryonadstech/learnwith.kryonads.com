@@ -74,11 +74,11 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 
 UNFOLD = {
-    'SITE_TITLE': 'Krayonads LMS',
-    'SITE_HEADER': 'Krayonads LMS',
+    'SITE_TITLE': 'Kryon LMS',
+    'SITE_HEADER': 'Kryon LMS',
     'SITE_URL': '/',
-    'SITE_LOGO': lambda request: static('admin/img/kryonads-logo.png'),
-    'SITE_LOGO_ALT': 'Krayonads LMS',
+    'SITE_LOGO': lambda request: static('admin/img/kryon-logo.png'),
+    'SITE_LOGO_ALT': 'Kryon LMS',
     'SITE_SYMBOL': 'school',
     'SHOW_HISTORY': True,
     'SHOW_VIEW_ON_SITE': True,
@@ -276,7 +276,7 @@ DATABASES = {
 CACHES = {
     'default': {
         'BACKEND': 'django.core.cache.backends.locmem.LocMemCache',
-        'LOCATION': 'kryonads-lms-cache',
+        'LOCATION': 'kryon-lms-cache',
     }
 }
 

@@ -1,5 +1,5 @@
 """
-User-related models for the Kryonads LMS.
+User-related models for the Kryon LMS.
 
 Provides a custom User model based on email authentication,
 proxy models for Student and Staff views in the admin,

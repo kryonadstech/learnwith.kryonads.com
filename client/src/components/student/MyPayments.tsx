@@ -92,7 +92,7 @@ function createReceiptHtml(payment: PaymentRecord, enrollment: Enrollment) {
   <div class="receipt">
     <div class="header">
       <div class="brand">
-        <div class="brand-mark"><img src="${logoSrc}" alt="Kryonads" /></div>
+        <div class="brand-mark"><img src="${logoSrc}" alt="Kryon" /></div>
       </div>
       <div class="receipt-meta">
         <span class="label">Receipt</span>

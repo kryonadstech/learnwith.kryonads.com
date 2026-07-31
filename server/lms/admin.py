@@ -162,8 +162,8 @@ class PaymentRecordAdmin(ModelAdmin):
 
 @admin.register(LiveClass)
 class LiveClassAdmin(ModelAdmin):
-    list_display = ['title', 'course', 'scheduled_time', 'zoom_link']
-    list_filter = ['course']
+    list_display = ['title', 'course', 'scheduled_time', 'zoom_link', 'status']
+    list_filter = ['course', 'status']
     search_fields = ['title', 'course__title']
     ordering = ['scheduled_time']
     compressed_fields = True
@@ -171,7 +171,7 @@ class LiveClassAdmin(ModelAdmin):
 
     def save_model(self, request, obj, form, change):
         """Send a live-class reminder email to all enrolled students on creation."""
-        is_new = obj.pk is None  # True only when creating, not editing
+        is_new = not change  # True only when creating, not editing
         super().save_model(request, obj, form, change)
 
         if not is_new:

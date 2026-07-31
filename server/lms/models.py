@@ -250,6 +250,13 @@ class LiveClass(models.Model):
     when a new LiveClass is created (handled in lms/admin.py).
     """
 
+    STATUS_CHOICES = (
+        ("scheduled", "Scheduled"),
+        ("completed", "Completed"),
+        ("postponed", "Postponed"),
+        ("cancelled", "Cancelled"),
+    )
+
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     course = models.ForeignKey(
         Course, related_name="live_classes", on_delete=models.CASCADE, db_index=True,
@@ -257,6 +264,7 @@ class LiveClass(models.Model):
     title = models.CharField(max_length=255)
     scheduled_time = models.DateTimeField(db_index=True)
     zoom_link = models.URLField(max_length=500)
+    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default="scheduled", help_text="Current status of the live class.")
     created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
@@ -265,7 +273,7 @@ class LiveClass(models.Model):
         ordering = ["scheduled_time"]
 
     def __str__(self) -> str:
-        return f"{self.title} – {self.scheduled_time:%d %b %Y %H:%M}"
+        return f"{self.title} – {self.scheduled_time:%d %b %Y %H:%M} ({self.get_status_display()})"
 
 
 class LiveClassAttendance(models.Model):

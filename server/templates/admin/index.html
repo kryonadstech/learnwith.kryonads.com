@@ -382,7 +382,12 @@
           <strong>{{ dashboard.total_media }} file{{ dashboard.total_media|pluralize }}</strong>
         </div>
         <div class="sto-bar">
-          <div class="sto-fill" style="width: {% if dashboard.total_media %}{% widthratio dashboard.total_media 100 100 %}{% else %}2{% endif %}%"></div>
+          {% if dashboard.total_media %}
+            {% widthratio dashboard.total_media 100 100 as media_pct %}
+            <div class="sto-fill" {% if True %}style="width: {{ media_pct }}%;"{% endif %}></div>
+          {% else %}
+            <div class="sto-fill" style="width: 2%;"></div>
+          {% endif %}
         </div>
         <div class="sto-grid">
           <div class="sto-box">
@@ -450,8 +455,8 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#e
   const grad = ctx.createLinearGradient(0,0,0,220);
   grad.addColorStop(0,'rgba(59,130,246,0.20)');
   grad.addColorStop(1,'rgba(59,130,246,0.00)');
-  const labels = {{ dashboard.revenue_labels_json|safe }};
-  const data = {{ dashboard.revenue_monthly_json|safe }};
+  const labels = JSON.parse('{{ dashboard.revenue_labels_json|escapejs }}');
+  const data = JSON.parse('{{ dashboard.revenue_monthly_json|escapejs }}');
   new Chart(ctx,{
     type:'line',
     data:{
@@ -477,8 +482,8 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#e
 
 // ── Bar: Top Courses (real data from Django context) ──
 (function(){
-  const labels = {{ dashboard.graph_labels_json|safe }};
-  const data   = {{ dashboard.graph_data_json|safe }};
+  const labels = JSON.parse('{{ dashboard.graph_labels_json|escapejs }}');
+  const data   = JSON.parse('{{ dashboard.graph_data_json|escapejs }}');
   const ctx = document.getElementById('enrollChart').getContext('2d');
   new Chart(ctx,{
     type:'bar',
@@ -505,9 +510,9 @@ const PALETTE = ['#3b82f6','#8b5cf6','#10b981','#f59e0b','#ef4444','#06b6d4','#e
 // ── Doughnut: Media Types (real data) ──
 (function(){
   const ctx = document.getElementById('pieChart').getContext('2d');
-  const videos = {{ dashboard.video_count }};
-  const audio  = {{ dashboard.audio_count }};
-  const notes  = {{ dashboard.notes_count }};
+  const videos = Number('{{ dashboard.video_count }}') || 0;
+  const audio  = Number('{{ dashboard.audio_count }}') || 0;
+  const notes  = Number('{{ dashboard.notes_count }}') || 0;
   const total  = videos + audio + notes;
   new Chart(ctx,{
     type:'doughnut',

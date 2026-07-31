@@ -1,5 +1,5 @@
 """
-User-facing API views for the Kryonads LMS.
+User-facing API views for the Kryon LMS.
 
 Endpoints:
     POST /auth/admin/login/       → AdminLoginView

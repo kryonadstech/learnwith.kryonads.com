@@ -593,8 +593,8 @@ export default function LandingPage() {
 
         <div className="footer-bottom">
           <div className="landing-container footer-bottom-inner">
-            <p>© {new Date().getFullYear()} Krayonads. All rights reserved.</p>
-            <p>learnwith.kryonads.com</p>
+            <p>© {new Date().getFullYear()} Kryon. All rights reserved.</p>
+            <p>learnwithkryon.com</p>
           </div>
         </div>
       </footer>
