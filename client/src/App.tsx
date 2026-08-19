@@ -12,7 +12,9 @@ const PublicRoute = ({ children }: { children: React.ReactNode }) => {
   if (loading) return <div className="flex h-screen items-center justify-center">Loading...</div>;
   if (user) {
     if (user.is_staff) {
-      window.location.href = 'http://localhost:8000/admin';
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1/';
+      const adminUrl = baseUrl.includes('/api/v1') ? baseUrl.replace('/api/v1/', '/admin/') : 'http://localhost:8000/admin/';
+      window.location.href = adminUrl;
       return null;
     }
     return <Navigate to="/dashboard" replace />;
@@ -27,8 +29,10 @@ const ProtectedRoute = ({ children, requireAdmin = false }: { children: React.Re
   if (!user) return <Navigate to="/" replace />;
   if (requireAdmin && !user.is_staff) return <Navigate to="/dashboard" replace />;
   if (!requireAdmin && user.is_staff) {
-    window.location.href = 'http://localhost:8000/admin';
-    return null;
+      const baseUrl = import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000/api/v1/';
+      const adminUrl = baseUrl.includes('/api/v1') ? baseUrl.replace('/api/v1/', '/admin/') : 'http://localhost:8000/admin/';
+      window.location.href = adminUrl;
+      return null;
   }
   return <>{children}</>;
 };

@@ -120,7 +120,7 @@ export default function LandingPage() {
       <header className="landing-header">
         <div className="landing-container landing-nav">
           <Link to="/" className="landing-logo">
-            <img src={logo} alt="Krayonads" className="logo-img" />
+            <img src={logo} alt="Kryonads" className="logo-img" />
           </Link>
           <div className="landing-nav-links">
             <a href="#about" className="nav-link">About</a>
@@ -149,7 +149,7 @@ export default function LandingPage() {
         <section className="landing-hero">
           <div className="landing-container hero-grid">
             <div className="hero-content">
-              <div className="hero-badge reveal">Digital Marketing Training · By Krayonads Agency</div>
+              <div className="hero-badge reveal">Digital Marketing Training · By Kryonads Agency</div>
               <h1 className="hero-title reveal reveal-1">
                 Learn Skill. Build Brands.{' '}
                 <span className="growth-underline-wrap">
@@ -232,10 +232,10 @@ export default function LandingPage() {
         <section className="about-section section-alt" id="about">
           <div className="landing-container about-grid">
             <div className="split-text reveal">
-              <p className="eyebrow">About Krayonads</p>
+              <p className="eyebrow">About Kryonads</p>
               <h2>Taught by marketers who do this for a living.</h2>
               <p>
-                Krayonads is a digital marketing agency — we plan and run SEO, Meta Ads, and social media campaigns for real clients every day. <strong>Learn With Kryon</strong> is our training platform, built around that same day-to-day agency work instead of textbook theory.
+                Kryonads is a digital marketing agency — we plan and run SEO, Meta Ads, and social media campaigns for real clients every day. <strong>Learn With Kryon</strong> is our training platform, built around that same day-to-day agency work instead of textbook theory.
               </p>
               <ul className="about-points">
                 <li><IconCheck />Instructors who run live client campaigns, not just lecture from slides</li>
@@ -247,7 +247,7 @@ export default function LandingPage() {
             <div className="split-visual reveal reveal-2">
               <div className="agency-card">
                 <div className="agency-card-head">
-                  <strong>What we do at Krayonads</strong>
+                  <strong>What we do at Kryonads</strong>
                   <span>The same services you'll learn to run</span>
                 </div>
                 <div className="agency-services">
@@ -539,7 +539,7 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-container footer-inner">
           <div className="footer-col footer-col-brand">
-            <img src={logo} alt="Krayonads" className="logo-img footer-logo" />
+            <img src={logo} alt="Kryonads" className="logo-img footer-logo" />
             <p className="footer-tagline">Learn Skill. Build Brands. Grow Careers.</p>
             <div className="footer-social">
               <a href="https://www.instagram.com/learn_with_kryon?igsh=dHFqemZkcXpyaDJ6" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="footer-social-link">
