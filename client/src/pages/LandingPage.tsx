@@ -52,6 +52,21 @@ const IconChevronDown = () => (
 const IconMail = () => (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><rect x="2" y="4" width="20" height="16" rx="2" /><path d="m22 7-10 7L2 7" /></svg>
 );
+const IconPhone = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round" width="16" height="16"><path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.8 19.8 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6A19.8 19.8 0 0 1 2.12 3.18 2 2 0 0 1 4.11 1h3a2 2 0 0 1 2 1.72c.12.9.33 1.78.62 2.63a2 2 0 0 1-.45 2.11L8 8.73a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45c.85.29 1.73.5 2.63.62A2 2 0 0 1 22 16.92Z" /></svg>
+);
+const IconWhatsApp = () => (
+  <svg viewBox="0 0 24 24" fill="currentColor" width="20" height="20" aria-hidden="true"><path d="M20.52 3.48A11.83 11.83 0 0 0 12.08 0C5.52 0 .18 5.33.18 11.9c0 2.1.55 4.15 1.6 5.96L.08 24l6.28-1.65a11.9 11.9 0 0 0 5.72 1.46h.01c6.56 0 11.9-5.34 11.9-11.9 0-3.18-1.24-6.17-3.47-8.43Zm-8.44 18.32h-.01a9.9 9.9 0 0 1-5.05-1.38l-.36-.21-3.73.98.99-3.64-.23-.37a9.87 9.87 0 0 1-1.52-5.28C2.17 6.45 6.61 2 12.08 2a9.87 9.87 0 0 1 7.02 2.91 9.9 9.9 0 0 1 2.9 7.03c0 5.47-4.45 9.91-9.92 9.91Zm5.44-7.42c-.3-.15-1.77-.87-2.05-.97-.27-.1-.47-.15-.67.15-.2.3-.77.97-.94 1.17-.17.2-.35.22-.65.07-.3-.15-1.25-.46-2.38-1.47-.88-.78-1.48-1.75-1.65-2.05-.17-.3-.02-.46.13-.61.14-.14.3-.35.45-.52.15-.17.2-.3.3-.5.1-.2.05-.37-.02-.52-.08-.15-.67-1.62-.92-2.22-.24-.58-.49-.5-.67-.51h-.57c-.2 0-.52.07-.8.37-.27.3-1.04 1.02-1.04 2.49s1.07 2.89 1.22 3.09c.15.2 2.1 3.2 5.09 4.49.71.31 1.27.49 1.7.63.72.23 1.38.2 1.9.12.58-.09 1.77-.72 2.02-1.42.25-.7.25-1.3.17-1.42-.07-.12-.27-.2-.57-.35Z" /></svg>
+);
+const IconWeb = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><circle cx="12" cy="12" r="9" /><path d="M3 12h18M12 3c2.2 2.4 3.3 5.4 3.3 9s-1.1 6.6-3.3 9c-2.2-2.4-3.3-5.4-3.3-9S9.8 5.4 12 3Z" /></svg>
+);
+const IconGoogleAds = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><path d="m7 20 6.5-11.25a3 3 0 0 1 5.2 3L12.2 23" /><path d="M5.2 20a3 3 0 0 1-2.6-4.5l5.2-9a3 3 0 0 1 5.2 3l-5.2 9A3 3 0 0 1 5.2 20Z" /><circle cx="18.5" cy="18.5" r="2.5" /></svg>
+);
+const IconVideo = () => (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.8" strokeLinecap="round" strokeLinejoin="round"><rect x="3" y="6" width="13" height="12" rx="2" /><path d="m16 10 5-3v10l-5-3Z" /></svg>
+);
 
 const GrowthUnderline = () => (
   <svg className="growth-underline" viewBox="0 0 220 24" preserveAspectRatio="none">
@@ -120,7 +135,7 @@ export default function LandingPage() {
       <header className="landing-header">
         <div className="landing-container landing-nav">
           <Link to="/" className="landing-logo">
-            <img src={logo} alt="Kryonads" className="logo-img" />
+            <img src={logo} alt="KryonAds" className="logo-img" />
           </Link>
           <div className="landing-nav-links">
             <a href="#about" className="nav-link">About</a>
@@ -149,7 +164,7 @@ export default function LandingPage() {
         <section className="landing-hero">
           <div className="landing-container hero-grid">
             <div className="hero-content">
-              <div className="hero-badge reveal">Digital Marketing Training · By Kryonads Agency</div>
+              <div className="hero-badge reveal">Digital Marketing Training · By KryonAds Agency</div>
               <h1 className="hero-title reveal reveal-1">
                 Learn Skill. Build Brands.{' '}
                 <span className="growth-underline-wrap">
@@ -232,10 +247,10 @@ export default function LandingPage() {
         <section className="about-section section-alt" id="about">
           <div className="landing-container about-grid">
             <div className="split-text reveal">
-              <p className="eyebrow">About Kryonads</p>
+              <p className="eyebrow">About KryonAds</p>
               <h2>Taught by marketers who do this for a living.</h2>
               <p>
-                Kryonads is a digital marketing agency — we plan and run SEO, Meta Ads, and social media campaigns for real clients every day. <strong>Learn With Kryon</strong> is our training platform, built around that same day-to-day agency work instead of textbook theory.
+                <strong>KryonAds</strong> is our digital marketing company. We plan and run SEO, Meta Ads, Google Ads, social media, web, and video campaigns for real clients every day. <strong>Learn With Kryon</strong> is our separate training platform, built around that same day-to-day agency work instead of textbook theory.
               </p>
               <ul className="about-points">
                 <li><IconCheck />Instructors who run live client campaigns, not just lecture from slides</li>
@@ -247,8 +262,8 @@ export default function LandingPage() {
             <div className="split-visual reveal reveal-2">
               <div className="agency-card">
                 <div className="agency-card-head">
-                  <strong>What we do at Kryonads</strong>
-                  <span>The same services you'll learn to run</span>
+                  <strong>What we do at KryonAds</strong>
+                  <span>Our marketing services for growing brands</span>
                 </div>
                 <div className="agency-services">
                   <div className="agency-service-row">
@@ -262,6 +277,18 @@ export default function LandingPage() {
                   <div className="agency-service-row">
                     <span className="chip-icon"><IconUsers /></span>
                     <span><strong>Social Media</strong><span>Content strategy and community growth</span></span>
+                  </div>
+                  <div className="agency-service-row">
+                    <span className="chip-icon"><IconWeb /></span>
+                    <span><strong>Web</strong><span>Websites designed for modern businesses</span></span>
+                  </div>
+                  <div className="agency-service-row">
+                    <span className="chip-icon"><IconGoogleAds /></span>
+                    <span><strong>Google Ads</strong><span>Search campaigns that bring in qualified leads</span></span>
+                  </div>
+                  <div className="agency-service-row">
+                    <span className="chip-icon"><IconVideo /></span>
+                    <span><strong>Video Production</strong><span>Purposeful video content for brands and campaigns</span></span>
                   </div>
                 </div>
               </div>
@@ -539,7 +566,7 @@ export default function LandingPage() {
       <footer className="landing-footer">
         <div className="landing-container footer-inner">
           <div className="footer-col footer-col-brand">
-            <img src={logo} alt="Kryonads" className="logo-img footer-logo" />
+            <img src={logo} alt="KryonAds" className="logo-img footer-logo" />
             <p className="footer-tagline">Learn Skill. Build Brands. Grow Careers.</p>
             <div className="footer-social">
               <a href="https://www.instagram.com/learn_with_kryon?igsh=dHFqemZkcXpyaDJ6" target="_blank" rel="noopener noreferrer" aria-label="Instagram" className="footer-social-link">
@@ -550,6 +577,9 @@ export default function LandingPage() {
               </a>
               <a href="mailto:learnwithkryon@gmail.com" aria-label="Email" className="footer-social-link">
                 <IconMail />
+              </a>
+              <a href="https://wa.me/917012306846" target="_blank" rel="noopener noreferrer" aria-label="WhatsApp" className="footer-social-link footer-whatsapp-link">
+                <IconWhatsApp />
               </a>
             </div>
           </div>
@@ -577,15 +607,11 @@ export default function LandingPage() {
             <h4 className="footer-col-title">Connect</h4>
             <ul className="footer-links-list">
               <li>
-                <a href="https://www.instagram.com/learn_with_kryon?igsh=dHFqemZkcXpyaDJ6" target="_blank" rel="noopener noreferrer" className="footer-ig-link">
-                  <IconInstagram /> @learn_with_kryon
+                <a href="https://wa.me/917012306846" target="_blank" rel="noopener noreferrer" className="footer-ig-link">
+                  <IconWhatsApp /> WhatsApp
                 </a>
               </li>
-              <li>
-                <a href="https://www.facebook.com/profile.php?id=61591361856824" target="_blank" rel="noopener noreferrer" className="footer-ig-link">
-                  <IconFacebook /> Facebook
-                </a>
-              </li>
+              <li><a href="tel:+917012306846" className="footer-phone-link"><IconPhone /> +91 70123 06846</a></li>
               <li><a href="mailto:learnwithkryon@gmail.com" className="footer-email-link"><IconMail /> learnwithkryon@gmail.com</a></li>
             </ul>
           </div>
@@ -594,10 +620,14 @@ export default function LandingPage() {
         <div className="footer-bottom">
           <div className="landing-container footer-bottom-inner">
             <p>© {new Date().getFullYear()} Kryon. All rights reserved.</p>
-            <p>learnwithkryon.com</p>
+            <p>Learn With Kryon · Powered by <a href="https://www.kryonads.com/" target="_blank" rel="noopener noreferrer">KryonAds</a></p>
           </div>
         </div>
       </footer>
+      <a className="whatsapp-float" href="https://wa.me/917012306846" target="_blank" rel="noopener noreferrer" aria-label="Chat with KryonAds on WhatsApp">
+        <IconWhatsApp />
+        <span>Chat on WhatsApp</span>
+      </a>
     </div>
   );
 }

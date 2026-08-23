@@ -1,0 +1,8 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <clipPath id="rounded-logo">
+      <rect width="100" height="100" rx="20" />
+    </clipPath>
+  </defs>
+  <image href="/learn-with-kryon-logo.png" width="100" height="100" preserveAspectRatio="xMidYMid slice" clip-path="url(#rounded-logo)" />
+</svg>
