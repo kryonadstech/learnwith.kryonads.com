@@ -74,8 +74,8 @@ from django.templatetags.static import static
 from django.urls import reverse_lazy
 
 UNFOLD = {
-    'SITE_TITLE': 'Kryon LMS',
-    'SITE_HEADER': 'Kryon LMS',
+    'SITE_TITLE': 'Learn With Kryon Admin',
+    'SITE_HEADER': 'Learn With Kryon Admin',
     'SITE_URL': '/',
     'SITE_LOGO': lambda request: static('admin/img/kryon-logo.png'),
     'SITE_LOGO_ALT': 'Kryon LMS',
