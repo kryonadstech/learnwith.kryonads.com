@@ -7,16 +7,36 @@ create/update operations use plain FK IDs.
 """
 
 from rest_framework import serializers
-from .models import Course, Module, Lesson, Media, Enrollment, LiveClass, PaymentRecord
+from .models import (
+    Course, Module, Lesson, Media, Enrollment, LiveClass, PaymentRecord,
+    validate_google_drive_url,
+)
 from users.models import User
 
 
 class MediaSerializer(serializers.ModelSerializer):
-    """Serializes a Media file attached to a Lesson."""
+    """Serializes a Google Drive media item attached to a Lesson."""
+
+    # Keep this explicit: new content created through the API must use Drive,
+    # while legacy uploaded records can still be returned to students.
+    drive_url = serializers.URLField(required=True, validators=[validate_google_drive_url])
+    embed_url = serializers.CharField(read_only=True)
+    legacy_file_url = serializers.SerializerMethodField(read_only=True)
+
+    def get_legacy_file_url(self, obj):
+        """Provide old locally uploaded content until each item is migrated."""
+        if not obj.file:
+            return ""
+        request = self.context.get("request")
+        url = obj.file.url
+        return request.build_absolute_uri(url) if request else url
 
     class Meta:
         model = Media
-        fields = ["id", "media_type", "file", "title", "created_at"]
+        fields = [
+            "id", "lesson", "media_type", "drive_url", "embed_url",
+            "legacy_file_url", "title", "created_at",
+        ]
 
 
 class LessonSerializer(serializers.ModelSerializer):

@@ -60,12 +60,17 @@ class LessonAdmin(ModelAdmin):
 
 @admin.register(Media)
 class MediaAdmin(ModelAdmin):
-    list_display = ['title', 'lesson', 'media_type', 'created_at']
+    list_display = ['title', 'lesson', 'media_type', 'media_source', 'created_at']
     list_filter = ['media_type']
     search_fields = ['title', 'lesson__title']
     ordering = ['-created_at']
     compressed_fields = True
     show_full_result_count = False
+    fields = ['lesson', 'title', 'media_type', 'drive_url']
+
+    @admin.display(description='Source')
+    def media_source(self, obj):
+        return 'Google Drive' if obj.drive_url else 'Legacy upload'
 
 
 # ── Enrollment export actions ────────────────────────────────────────────────

@@ -1,12 +1,25 @@
-import { useState, useEffect } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import api from '../../api/axios';
 import SecurePlayer from './SecurePlayer';
-import { ChevronLeft, Play, FileText, Headphones, Lock, Layers } from 'lucide-react';
+import {
+  BookOpen,
+  ChevronLeft,
+  CirclePlay,
+  FileText,
+  Headphones,
+  Layers,
+  List,
+  Lock,
+  Play,
+} from 'lucide-react';
 
 interface Media {
   id: string;
+  lesson: string;
   media_type: 'video' | 'audio' | 'notes';
-  file: string;
+  drive_url: string;
+  embed_url: string;
+  legacy_file_url: string;
   title: string;
 }
 
@@ -33,28 +46,30 @@ interface CourseViewerProps {
   onBack: () => void;
 }
 
+const mediaLabels = {
+  video: 'Video lesson',
+  audio: 'Audio lesson',
+  notes: 'Lesson notes',
+} as const;
+
 export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
   const [course, setCourse] = useState<CourseDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [activeLesson, setActiveLesson] = useState<Lesson | null>(null);
-  const [activeMediaId, setActiveMediaId] = useState<string | 'all' | null>(null);
+  const [activeMediaId, setActiveMediaId] = useState<string | null>(null);
   const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const playerRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     const fetchCourseDetail = async () => {
       try {
-        // Here we hit the same endpoint, but we can reuse the CourseSerializer
-        // to get the nested modules and lessons.
         const response = await api.get(`/lms/student/courses/${courseId}/`);
         setCourse(response.data);
 
-        // Auto-select first lesson if available
-        if (response.data.modules?.[0]?.lessons?.[0]) {
-          const firstLesson = response.data.modules[0].lessons[0];
+        const firstLesson = response.data.modules?.[0]?.lessons?.[0];
+        if (firstLesson) {
           setActiveLesson(firstLesson);
-          if (firstLesson.media?.[0]) {
-            setActiveMediaId('all');
-          }
+          setActiveMediaId(firstLesson.media?.[0]?.id ?? null);
         }
       } catch (error) {
         console.error('Failed to fetch course details', error);
@@ -66,148 +81,164 @@ export default function CourseViewer({ courseId, onBack }: CourseViewerProps) {
     fetchCourseDetail();
   }, [courseId]);
 
-  const getMediaIcon = (type: string) => {
+  const getMediaIcon = (type: Media['media_type'], size = 16) => {
     switch (type) {
       case 'video':
-        return <Play size={14} />;
+        return <Play size={size} />;
       case 'audio':
-        return <Headphones size={14} />;
+        return <Headphones size={size} />;
       case 'notes':
-        return <FileText size={14} />;
-      default:
-        return <FileText size={14} />;
+        return <FileText size={size} />;
     }
+  };
+
+  const selectLesson = (lesson: Lesson) => {
+    setActiveLesson(lesson);
+    setActiveMediaId(lesson.media[0]?.id ?? null);
+    setIsSidebarOpen(false);
+    requestAnimationFrame(() => playerRef.current?.scrollIntoView({ behavior: 'smooth', block: 'start' }));
   };
 
   if (loading) return <div className="text-secondary text-center py-12">Loading course content...</div>;
   if (!course) return <div className="text-[var(--error)] text-center py-12">Failed to load course.</div>;
 
-  return (
-    <div className="animate-fade-in">
-      <a onClick={onBack} className="sd-back-link">
-        <ChevronLeft size={20} /> Back to My Courses
-      </a>
+  const selectedMedia = activeLesson?.media.find((media) => media.id === activeMediaId) ?? null;
+  const activeModule = course.modules.find((module) =>
+    module.lessons.some((lesson) => lesson.id === activeLesson?.id),
+  );
 
-      {/* Mobile Syllabus Toggle */}
-      <button className="sd-mobile-sidebar-toggle" onClick={() => setIsSidebarOpen(!isSidebarOpen)}>
-        <span>{isSidebarOpen ? 'Hide Syllabus' : 'View Syllabus'}</span>
-        <FileText size={18} />
+  return (
+    <div className="sd-course-page animate-fade-in">
+      <button type="button" onClick={onBack} className="sd-back-link">
+        <ChevronLeft size={18} /> Back to My Courses
       </button>
 
+      <div className="sd-course-heading">
+        <div>
+          <span className="sd-course-kicker"><BookOpen size={15} /> Course workspace</span>
+          <h2>{course.title}</h2>
+          <p>Choose a lesson, then select one resource to keep your learning focused.</p>
+        </div>
+        <button
+          type="button"
+          className="sd-mobile-sidebar-toggle"
+          onClick={() => setIsSidebarOpen((isOpen) => !isOpen)}
+          aria-expanded={isSidebarOpen}
+          aria-controls="course-syllabus"
+        >
+          <span>{isSidebarOpen ? 'Hide course content' : 'Course content'}</span>
+          <List size={18} />
+        </button>
+      </div>
+
       <div className="sd-viewer-layout">
-        <div className="sd-main-content bg-[var(--sd-glass)] rounded-2xl shadow-sm border border-[var(--sd-glass-border)] p-6 md:p-10 flex flex-col gap-8">
-          <div className="border-b border-[var(--sd-glass-border)] pb-8">
-            <h2 className="text-3xl font-bold tracking-tight text-[var(--sd-text)]">
-              {course.title}
-            </h2>
+        <main ref={playerRef} className="sd-main-content" aria-label="Lesson player">
+          <div className="sd-lesson-heading">
+            <div className="sd-lesson-icon"><BookOpen size={20} /></div>
+            <div className="sd-lesson-heading-copy">
+              <p>{activeModule?.title || 'Course lesson'}</p>
+              <h3>{activeLesson?.title || 'Select a lesson'}</h3>
+            </div>
             {activeLesson && (
-              <p className="text-secondary mt-3 text-lg font-medium">{activeLesson.title}</p>
+              <span className="sd-resource-count">
+                <Layers size={15} /> {activeLesson.media.length} {activeLesson.media.length === 1 ? 'resource' : 'resources'}
+              </span>
             )}
           </div>
 
-          {(() => {
-            const activeMediaList = activeMediaId === 'all' 
-              ? activeLesson?.media || []
-              : activeLesson?.media.filter(m => m.id === activeMediaId) || [];
+          {selectedMedia ? (
+            <section className="sd-learning-stage" aria-live="polite">
+              {activeLesson && activeLesson.media.length > 1 && (
+                <nav className="sd-resource-switcher" aria-label="Lesson resources">
+                  <span className="sd-resource-switcher-label">Lesson resources</span>
+                  <div className="sd-resource-tabs">
+                    {activeLesson.media.map((media) => (
+                      <button
+                        type="button"
+                        key={media.id}
+                        onClick={() => setActiveMediaId(media.id)}
+                        className={`sd-resource-tab ${activeMediaId === media.id ? 'active' : ''}`}
+                        aria-pressed={activeMediaId === media.id}
+                        title={media.title || mediaLabels[media.media_type]}
+                      >
+                        {getMediaIcon(media.media_type, 15)}
+                        <span>{media.title || mediaLabels[media.media_type]}</span>
+                      </button>
+                    ))}
+                  </div>
+                </nav>
+              )}
 
-            if (activeMediaList.length > 0) {
-              return (
-                <div className="flex flex-col gap-24 mt-6">
-                  {activeMediaList.map(media => (
-                    <div key={media.id} className="flex flex-col gap-6">
-                      <div className="flex items-center gap-4">
-                        <div className="p-3 bg-[var(--sd-accent-tint)] text-[var(--sd-accent)] rounded-xl shadow-sm">
-                          {getMediaIcon(media.media_type)}
-                        </div>
-                        <h3 className="text-2xl font-semibold text-[var(--sd-text)]">
-                          {media.title || (media.media_type.charAt(0).toUpperCase() + media.media_type.slice(1))}
-                        </h3>
-                      </div>
-                      <div className="w-full">
-                        <SecurePlayer mediaUrl={media.file} mediaType={media.media_type} />
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              );
-            }
-
-            return (
-              <div className="h-64 flex flex-col items-center justify-center text-secondary mt-4 bg-[var(--sd-accent-tint)] rounded-2xl">
-                <Lock size={48} className="mb-4 opacity-50" />
-                <p className="text-lg font-medium">Select a lesson from the syllabus to begin learning.</p>
+              <div className="sd-player-header">
+                <span className={`sd-media-type sd-media-type--${selectedMedia.media_type}`}>
+                  {getMediaIcon(selectedMedia.media_type, 14)} {mediaLabels[selectedMedia.media_type]}
+                </span>
+                <h4>{selectedMedia.title || mediaLabels[selectedMedia.media_type]}</h4>
               </div>
-            );
-          })()}
-        </div>
 
-        {/* Sidebar Syllabus */}
-        <div className={`sd-sidebar ${isSidebarOpen ? 'open' : ''}`}>
-          <h3
-            style={{
-              fontSize: '1.25rem',
-              fontWeight: 700,
-              borderBottom: '1px solid var(--sd-glass-border)',
-              paddingBottom: '1rem',
-              marginBottom: '1.5rem',
-              color: 'var(--sd-text)',
-            }}
-          >
-            Course Syllabus
-          </h3>
+              <SecurePlayer
+                embedUrl={selectedMedia.embed_url}
+                legacyMediaUrl={selectedMedia.legacy_file_url}
+                mediaType={selectedMedia.media_type}
+              />
+            </section>
+          ) : (
+            <div className="sd-empty-lesson">
+              <Lock size={32} />
+              <h4>{activeLesson ? 'This lesson has no resources yet' : 'Select a lesson to begin'}</h4>
+              <p>{activeLesson ? 'Your instructor will add the learning material here.' : 'Use the course content panel to choose where to start.'}</p>
+            </div>
+          )}
+        </main>
+
+        <aside id="course-syllabus" className={`sd-sidebar ${isSidebarOpen ? 'open' : ''}`} aria-label="Course content">
+          <div className="sd-sidebar-heading">
+            <div>
+              <p>Course content</p>
+              <h3>Course syllabus</h3>
+            </div>
+            <span>{course.modules.length} {course.modules.length === 1 ? 'module' : 'modules'}</span>
+          </div>
 
           {course.modules.length === 0 ? (
             <p className="text-sm text-secondary">No modules available yet.</p>
           ) : (
-            <div className="flex flex-col gap-4">
-              {course.modules.map((module) => (
-                <div key={module.id}>
-                  <h4 className="sd-module-title">{module.title}</h4>
-                  <div className="flex flex-col gap-1">
-                    {module.lessons.map((lesson) => (
-                      <div key={lesson.id} className="mb-2">
-                        <button
-                          onClick={() => {
-                            setActiveLesson(lesson);
-                            if (lesson.media.length > 0) setActiveMediaId('all');
-                            if (window.innerWidth <= 1024) setIsSidebarOpen(false);
-                          }}
-                          className={`sd-lesson-btn ${activeLesson?.id === lesson.id ? 'active' : ''}`}
-                        >
-                          <Play size={14} />
-                          <span>{lesson.title}</span>
-                        </button>
-
-                        {/* Media Links if lesson is active */}
-                        {activeLesson?.id === lesson.id && lesson.media.length > 1 && (
-                          <div className="sd-media-links flex flex-col gap-1">
-                            <button
-                              onClick={() => setActiveMediaId('all')}
-                              className={`sd-media-btn ${activeMediaId === 'all' ? 'active' : ''}`}
-                            >
-                              <Layers size={14} />
-                              <span>View All</span>
-                            </button>
-                            {lesson.media.map((media) => (
-                              <button
-                                key={media.id}
-                                onClick={() => setActiveMediaId(media.id)}
-                                className={`sd-media-btn ${activeMediaId === media.id ? 'active' : ''}`}
-                              >
-                                {getMediaIcon(media.media_type)}
-                                <span>{media.title || media.media_type}</span>
-                              </button>
-                            ))}
-                          </div>
-                        )}
-                      </div>
-                    ))}
+            <div className="sd-module-list">
+              {course.modules.map((module, moduleIndex) => (
+                <section key={module.id} className="sd-module-group">
+                  <div className="sd-module-heading">
+                    <span>Module {moduleIndex + 1}</span>
+                    <h4>{module.title}</h4>
                   </div>
-                </div>
+
+                  <div className="sd-lesson-list">
+                    {module.lessons.map((lesson, lessonIndex) => {
+                      const resourceCount = lesson.media.length;
+                      const isActive = activeLesson?.id === lesson.id;
+
+                      return (
+                        <button
+                          type="button"
+                          key={lesson.id}
+                          onClick={() => selectLesson(lesson)}
+                          className={`sd-lesson-btn ${isActive ? 'active' : ''}`}
+                          aria-current={isActive ? 'step' : undefined}
+                        >
+                          <span className="sd-lesson-number">{moduleIndex + 1}.{lessonIndex + 1}</span>
+                          <span className="sd-lesson-summary">
+                            <strong>{lesson.title}</strong>
+                            <small>{resourceCount === 0 ? 'No resources yet' : `${resourceCount} ${resourceCount === 1 ? 'resource' : 'resources'}`}</small>
+                          </span>
+                          <CirclePlay size={17} className="sd-lesson-action" />
+                        </button>
+                      );
+                    })}
+                  </div>
+                </section>
               ))}
             </div>
           )}
-        </div>
+        </aside>
       </div>
     </div>
   );

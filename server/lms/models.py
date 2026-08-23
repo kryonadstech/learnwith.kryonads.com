@@ -5,6 +5,11 @@ Defines the core data layer for Courses, Modules, Lessons, Media,
 Enrollments, Live Classes and Attendance records.
 """
 
+import re
+from urllib.parse import parse_qs, urlparse
+
+from django.core.exceptions import ValidationError
+from django.core.validators import URLValidator
 from django.db import models
 from django.conf import settings
 from django.utils import timezone
@@ -93,12 +98,46 @@ class Lesson(models.Model):
         return f"{self.module.title} – {self.title}"
 
 
+GOOGLE_DRIVE_HOSTS = {"drive.google.com", "docs.google.com"}
+GOOGLE_DRIVE_FILE_ID_PATTERN = re.compile(r"^[A-Za-z0-9_-]{10,}$")
+
+
+def get_google_drive_file_id(url: str) -> str | None:
+    """Return a Google Drive file ID from a supported sharing URL, if present."""
+    if not url:
+        return None
+
+    parsed = urlparse(url)
+    host = (parsed.hostname or "").lower()
+    if host not in GOOGLE_DRIVE_HOSTS:
+        return None
+
+    # Standard Drive links use /file/d/<file-id>/view. Google Docs links
+    # use the same ``/d/<file-id>`` segment with a different path prefix.
+    path_match = re.search(r"/d/([^/]+)", parsed.path)
+    file_id = path_match.group(1) if path_match else parse_qs(parsed.query).get("id", [None])[0]
+
+    return file_id if file_id and GOOGLE_DRIVE_FILE_ID_PATTERN.fullmatch(file_id) else None
+
+
+def validate_google_drive_url(value: str) -> None:
+    """Ensure a media link is a valid Google Drive sharing URL."""
+    URLValidator()(value)
+    if not get_google_drive_file_id(value):
+        raise ValidationError(
+            "Enter a Google Drive file sharing link, for example "
+            "https://drive.google.com/file/d/FILE_ID/view."
+        )
+
+
 class Media(models.Model):
     """
-    A media file (video, audio, or PDF notes) attached to a Lesson.
+    A media item (video, audio, or PDF notes) attached to a Lesson.
 
-    Files are uploaded to the 'lms_media/' directory. Each media item
-    carries a type label so the frontend can render it appropriately.
+    New content is hosted in Google Drive and referenced by ``drive_url``;
+    files are not uploaded through this application. ``file`` remains only as
+    a temporary, read-only legacy fallback for content uploaded before this
+    change, so existing lessons are not broken during migration.
     """
 
     MEDIA_TYPES = (
@@ -116,7 +155,20 @@ class Media(models.Model):
         max_length=10, choices=MEDIA_TYPES,
         help_text="The type of media content."
     )
-    file = models.FileField(upload_to="lms_media/")
+    drive_url = models.URLField(
+        blank=True,
+        null=True,
+        validators=[validate_google_drive_url],
+        help_text=(
+            "Paste a Google Drive file sharing link. Set the file access to "
+            "'Anyone with the link' so enrolled students can view it."
+        ),
+    )
+    file = models.FileField(
+        upload_to="lms_media/",
+        blank=True,
+        help_text="Legacy uploaded file. New media must use the Google Drive link above.",
+    )
     title = models.CharField(max_length=255, blank=True, help_text="Optional display title for this media item.")
     created_at = models.DateTimeField(auto_now_add=True)
 
@@ -130,6 +182,22 @@ class Media(models.Model):
 
     def __str__(self) -> str:
         return f"[{self.media_type}] {self.lesson.title}"
+
+    def clean(self):
+        super().clean()
+        if not self.drive_url and not self.file:
+            raise ValidationError({"drive_url": "A Google Drive sharing link is required."})
+
+    @property
+    def google_drive_file_id(self) -> str | None:
+        """The Drive file ID used to build a browser-safe embed URL."""
+        return get_google_drive_file_id(self.drive_url or "")
+
+    @property
+    def embed_url(self) -> str:
+        """Drive preview URL suitable for an iframe in the student panel."""
+        file_id = self.google_drive_file_id
+        return f"https://drive.google.com/file/d/{file_id}/preview" if file_id else ""
 
 
 class Enrollment(models.Model):
