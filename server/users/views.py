@@ -151,7 +151,8 @@ class RequestOTPView(views.APIView):
             send_mail(
                 "Your LMS Login Code",
                 f"Your login code is: {code}. It expires in 10 minutes.",
-                settings.EMAIL_HOST_USER,
+                # settings.EMAIL_HOST_USER,
+                settings.DEFAULT_FROM_EMAIL,
                 [email],
                 fail_silently=False,
             )
